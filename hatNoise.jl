@@ -2,6 +2,7 @@ include("perlin.jl")
 include("simplex.jl")
 include("trueMonotile.jl")
 
+# Function that saves all needed information of tessellation into discrete data structures
 function kiteMatrix(n, type)
     kites = generateProperTiling(n, type)
     skewed = getSkewedPoints.(kites)
@@ -42,6 +43,7 @@ function kiteMatrix(n, type)
     return kM, pM, mM, trans, xMin, yMin
 end
 
+# Generating random vectors table
 function randomKiteGridVectors(kM)
     n, m = size(kM)
     vecs = Matrix{Vector{Vector{Float64}}}(undef, n, m)
@@ -51,13 +53,15 @@ function randomKiteGridVectors(kM)
     return vecs
 end
 
+# Generating random vecotrs to each hat tile
 function randomParentVectors(pM)
     m = findmax(x->findmax(x), pM)[1][1]
     return [randomVector() for _ in 1:m]
 end
 
-angels = [5pi/12, -pi/4, -11pi/12, pi/12, 3pi/4, -7pi/12]
+angels = [5pi/12, -pi/4, -11pi/12, pi/12, 3pi/4, -7pi/12] # table of all possible rotations of kite tile on proper tiling
 
+# Function that evaluates kite noise at (x, y) given random vectors and inormation from tessellation  
 function kiteNoise(x, y, gridVectors, trans, xMin, yMin)
     i, j = floor.(Int64, skewPoint([x, y], US) - trans)
     xCell, yCell = skewPoint([i, j] + trans, S)
@@ -141,6 +145,7 @@ function kiteNoise(x, y, gridVectors, trans, xMin, yMin)
     return 8*(n0 + n1 + n2 + n3)
 end
 
+# Auxilary function that generates kite noise on field
 function generateKiteNoise(M, N, gridVectors, trans, xMin, yMin)
     xs = LinRange(0, M, N)
     ys = LinRange(0, M, N)
@@ -152,7 +157,7 @@ function generateKiteNoise(M, N, gridVectors, trans, xMin, yMin)
     return noise 
 end
 
-
+# Function that evaluates index of kite tile at point (x, y) 
 function hatHeights(x, y, kM, trans, xMin, yMin)
     i, j = floor.(Int64, skewPoint([x, y], US) - trans)
     xCell, yCell = skewPoint([i, j] + trans, S)
@@ -173,6 +178,7 @@ function hatHeights(x, y, kM, trans, xMin, yMin)
     return kM[i - xMin + 1, j - yMin + 1][cellInd]
 end
 
+# Function that evaluates hat noise at point (x, y) given random vecotrs table and information about tessellation
 function hatNoise(x, y, gridVectors, kM, pM, mM, pVectors, trans, xMin, yMin)
     i, j = floor.(Int64, skewPoint([x, y], US) - trans)
     xCell, yCell = skewPoint([i, j] + trans, S)
@@ -274,6 +280,7 @@ function hatNoise(x, y, gridVectors, kM, pM, mM, pVectors, trans, xMin, yMin)
     return xCell, yCell
 end
 
+# Auxilary function for generating hat noise on field
 function generateHatNoise(M, N, gridVectors, kM, pM, mM, pVectors, trans, xMin, yMin)
     xs = LinRange(0, M, N)
     ys = LinRange(0, M, N)
