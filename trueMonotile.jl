@@ -1,10 +1,12 @@
 using Plots, Statistics
 
+# Structs that are geometric figures
+
 mutable struct Metatile
     type::Char
-    a::Float64
-    b::Float64
-    c::Float64
+    a::Float64 #
+    b::Float64 # parameters of monotiles
+    c::Float64 #
     translation::Vector{Float64}
     rotation::Float64
     scale::Float64
@@ -27,17 +29,21 @@ mutable struct KiteTile
     mirrored::Bool
 end
 
+# Function for rotation
 function rotatePoints(points, angle)
     R = [cos(angle) -sin(angle);
          sin(angle)  cos(angle)]
     return R*points
 end
 
+# Function for mirroring
 function mirrorPoints(points)
     T = [-1 0;
           0 1]
     return T*points
 end
+
+# Methods of getting points of vertex of diffrent tiles
 
 function getPoints(tile::Metatile)
     if tile.type == 'H'
@@ -104,6 +110,8 @@ function getPoints(tile::KiteTile)
     return (tile.translation .+ rotatePoints([p0 p1 p2 p3], tile.rotation))*tile.scale
 end
 
+# Methods of plotting diffrent tiles 
+                    
 function plotTile!(tile::Metatile; alpha=0.4, lw=1, lc=:black)
     colorDict = Dict{Char, Symbol}('H' => :red, 'T' => :yellow, 'P' => :green, 'F' => :blue)
     points = getPoints(tile)
@@ -151,6 +159,8 @@ function plotLine!(tile::KiteTile; lw=1, lc=:black)
     plot!(points[1, :], points[2, :], seriestype=[:shape], color=false, legend=false, lw=lw, lc=lc)
 end
 
+
+# Function that calculates values of a, b, c parameters on next iteration                    
 function calculateNextValues(a, b, c)
     ## part of F Metatile substitution
     tile0 = Metatile('F', a, b, c, [0, 0], pi, 1)
@@ -184,6 +194,7 @@ function calculateNextValues(a, b, c)
     return ai, bi, ci, αi
 end
 
+# Substitution of metatiles with new metatiles
 # a, b, c are previously calculated value tile is supertile of tiles based on a, b, c
 function metatileSubstitute(supertile, a, b, c, αi)
     dx = -b/2 + a - c
@@ -343,6 +354,7 @@ function metatileSubstitute(supertile, a, b, c, αi)
     end
 end
 
+# Function that generates metatile tiling
 function generateHTPFTiling(n, type, translation=[0, 0], rotation=0, scale=1)
     as = Vector{Float64}(undef, n+1)
     bs = Vector{Float64}(undef, n+1)
@@ -367,6 +379,8 @@ function generateHTPFTiling(n, type, translation=[0, 0], rotation=0, scale=1)
     return tiles 
 end
 
+
+# Substitution of metatiles into hat (Einstein tiles)
 function hatSubstitute(tile::Metatile)
     if tile.type == 'H'
         calcOffset0 = 4*[cos(tile.rotation), sin(tile.rotation)]
@@ -409,6 +423,7 @@ function hatSubstitute(tile::Metatile)
     return hats
 end
 
+# Function to generate hat tiling
 function generateHatTiling(n, type, translation=[0, 0], rotation=0,  scale=1)
     tiles = generateHTPFTiling(n, type, translation, rotation, scale)
     hats = HatTile[]
@@ -418,6 +433,7 @@ function generateHatTiling(n, type, translation=[0, 0], rotation=0,  scale=1)
     return hats
 end
 
+# Substitution of hat tiles into kites
 function kiteSubstitute(tile::HatTile, i)
     if tile.mirrored
         defRotation = tile.rotation
@@ -476,6 +492,7 @@ function kiteSubstitute(tile::HatTile, i)
     end
 end
 
+# Function that generates kite tiling
 function generateKiteTiling(n, type, translation=[0, 0], rotation=0,  scale=1)
     hats = generateHatTiling(n, type, translation, rotation, scale)
     kites = KiteTile[]
@@ -485,9 +502,10 @@ function generateKiteTiling(n, type, translation=[0, 0], rotation=0,  scale=1)
     return kites
 end
 
+# Function that generates kite tiling that is inscribed in regular triangle tiling used in Simplex Noise
 generateProperTiling(n, type) = generateKiteTiling(n, type, [0, 0], pi/12, sqrt(2)/6)
 
-
+# Auxilary function to skew points of kite tile
 function getSkewedPoints(tile::KiteTile)
     points = getPoints(tile)
     M = [1+sqrt(3) 1-sqrt(3);
@@ -500,6 +518,7 @@ function plotSkewedTile!(tile::KiteTile)
     plot!(points[1,:], points[2,:], seriestype=[:shape], color=false, legend=false)
 end
 
+# Function that given vector of kite tiles deletes repeated tiles
 function filterRepeats(kites)
     skewed = getSkewedPoints.(kites)
     x, y = skewed[1][:,1]
