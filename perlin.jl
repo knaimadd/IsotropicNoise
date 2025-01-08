@@ -1,12 +1,15 @@
 using LinearAlgebra, Plots, Random
 
+# Function for generating random normal vector
 function randomVector()
     θ = 2*π*rand()
     return [cos(θ), sin(θ)]
 end
 
+# Function for generating points on grid
 generateGridPoints(xlim, ylim) = [[x, y] for x in 0:xlim, y in 0:ylim]
 
+# Auxilary function for generating data needed to plot grid lines
 function gridLines(gridPoints)
     n, m = size(gridPoints)
     verLines = Vector{Vector{}}(undef, n*(m-1))
@@ -32,6 +35,7 @@ function gridLines(gridPoints)
     return [verLines; horLines; skewLines] 
 end
 
+# Plotting grid lines
 function plotGrid!(gridPoints, color=1)
     lines = gridLines(gridPoints)
     for line in lines
@@ -63,12 +67,14 @@ smoothstepInterploation2(a0, a1, w) = (a1 - a0) * smoothstep2(w) + a0
 
 gridCorners(grid, cell) = grid[cell[1]:cell[1]+1, cell[2]:cell[2]+1]
 
+# Vector visualization
 function plotVector!(v0, v; color=1, lw=1, scale=1)
     x0, y0 = v0
     x, y = scale*v
     plot!([x0, x0 + x], [y0, y0 + y], color=color, lw=lw, arrow=true, label=false)
 end
 
+# Vectors Visualization
 function plotGridVectors!(gridVectors; color=1, lw=1, scale=1)
     n, m = size(gridVectors)
     for i in 1:n, j in 1:m
@@ -77,6 +83,14 @@ function plotGridVectors!(gridVectors; color=1, lw=1, scale=1)
     plot!()
 end
 
+"""Generating Perlin Noise
+Takes:
+x, y - point coordinates
+gridVectors - table of random vectors
+interpolationFunction - function tu use while interpolating
+Returns:
+value of Perlin Noise evaluated at point (x, y)
+"""
 function perlinNoise(x, y, gridVectors; interpolationFunction = smoothstepInterploation2)
     i, j = floor(Int64, x), floor(Int64, y)
     dx, dy = x - i, y - j
@@ -96,6 +110,7 @@ function perlinNoise(x, y, gridVectors; interpolationFunction = smoothstepInterp
     return interpolationFunction(nx1, nx2, dy)
 end
 
+# Auxilary function to generate Perlin Noise on given field
 function generatePerlinNoise(gridVectors, N; interpolationFunction=smoothstepInterploation2)
     n, m = size(gridVectors)
     xRange = LinRange(0, n-1.01, N)
@@ -107,7 +122,7 @@ function generatePerlinNoise(gridVectors, N; interpolationFunction=smoothstepInt
     return noise
 end
 
-##
+# Auxilary function to find values of dot products before interpolation 
 function perlinProds(x, y, plotGridVectors)
     i, j = floor(Int64, x), floor(Int64, y)
     dx, dy = x - i, y - j
@@ -123,6 +138,7 @@ function perlinProds(x, y, plotGridVectors)
     return n00, n01, n10, n11
 end
 
+# Auxilary function to find Periln dot Products before interpolation
 function generatePerlinProds(gridVectors, N)
     n, m = size(gridVectors)
     xRange = LinRange(0, n-1.01, N)
