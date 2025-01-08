@@ -3,6 +3,7 @@ include("perlin.jl")
 
 generateGridPoints(xlim, ylim) = [[x, y] for x in 0:xlim, y in 0:ylim]
 
+# Auxilary function to generate data to plot simplex grid
 function gridLines(gridPoints; across = true)
     n, m = size(gridPoints)
     verLines = Vector{Vector{}}(undef, n*(m-1))
@@ -31,6 +32,7 @@ function gridLines(gridPoints; across = true)
     return [verLines; horLines; skewLines] 
 end
 
+# Plotting grid
 function plotGrid!(gridPoints, color=1; across=true)
     lines = gridLines(gridPoints, across=across)
     for line in lines
@@ -39,12 +41,15 @@ function plotGrid!(gridPoints, color=1; across=true)
     plot!()
 end
 
-const US = (sqrt(3)-1)/2
+# Constants used while generating Simlpex Noise
+const US = (sqrt(3)-1)/2 
 const S = -(3-sqrt(3))/6
 
+# Two ways of skewing points from one grid to another
 skewPoint(P, A) = P .+ sum(P)*A
 skewPointM(P, M) = M*P
 
+# Function to find skew matrix for given angle
 function skewMatrix(angle)
     M = [cos(-angle) cos(pi/2+angle);
         sin(-angle) sin(pi/2+angle)]
@@ -57,12 +62,13 @@ function borderCorners(gridPoints, A)
     return skewPoint.(corners, A)
 end
 
+# Auxilary function to find field where you can evaluate Simplex Noise given grid
 function safeRange(gridPoints, A)
     corners = borderCorners(gridPoints, A)
     return [corners[1][1], corners[end][1], corners[1][2], corners[end][2]]
 end
 
-
+# Function to evaluate Simplex Noise given point (x, y) and table o frandom Vectors
 function simplexNoise(x, y, gridVectors)
     i, j = floor.(Int64, skewPoint([x, y], US))
     xCell, yCell = skewPoint([i, j], S)
@@ -103,6 +109,7 @@ function simplexNoise(x, y, gridVectors)
     return 100*(n0 + n1 + n2)
 end
 
+# Auxilary function to generate field of Simplex Noise
 function generateSimplexNoise(size, N)
     m = ceil(Int64, skewPoint([size, size], US)[1])
     xs = 0:m
