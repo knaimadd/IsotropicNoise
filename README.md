@@ -8,4 +8,4 @@ Files with my implementation of Perlin Noise and Simplex Noise and some auxilary
 File containing algorithms for generation of aperiodic tesselation using hat tile.
 
 ## hatNoise.jl
-File containing algorithms for generation of new noises that uses aperiodic grid. The new noises are much closer to being isotropic than classic noises (Perlin and Simplex).
+File containing algorithms for generation of new noises that use aperiodic grid. The new noises are much closer to being isotropic than classic noises (Perlin and Simplex).
